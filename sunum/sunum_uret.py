@@ -1128,8 +1128,8 @@ def build_html() -> str:
 
     <div class="grid-2-wide-l" style="min-height:0;">
       <div style="display:flex;flex-direction:column;gap:8px;min-height:0;">
-        <div class="chart-frame" style="flex:1;padding:6px;max-height:300px;">
-          <img src="{img_izmir_harita}" alt="İzmir merkez uydu sulanan yeşil haritası" style="max-height:286px;" />
+        <div class="chart-frame" style="flex:1;padding:6px;max-height:280px;">
+          <img src="{img_izmir_harita}" alt="İzmir merkez uydu sulanan yeşil haritası" style="max-height:266px;" />
         </div>
         <div style="font-size:11.5px;color:var(--muted);text-align:center;">
           İzmir merkez 11 ilçe uydu çıktısı (3,38 km² sulanan kentsel yeşil · ESA WorldCover 2021 &amp; Sentinel-2 2023)
@@ -1140,11 +1140,12 @@ def build_html() -> str:
             <strong>Kod:</strong> <a href="{DEMO_LINK}" style="color:var(--green-deep);font-weight:700;">{DEMO_LINK_YAZI}</a> · Python 3 yeterli, hesap için kayıt ya da anahtar gerekmez.
           </div>
           <div style="font-family:Consolas,monospace;font-size:11.8px;background:#FFFFFF;border:1px solid var(--green-border);border-radius:8px;padding:7px 10px;margin-top:7px;line-height:1.55;color:var(--ink);">
-            1&nbsp; git clone {DEMO_LINK} &amp;&amp; cd florify<br/>
-            2&nbsp; python -m pip install -r requirements.txt<br/>
-            3&nbsp; python web/sunucu.py &nbsp;→ tarayıcıda <strong>http://localhost:8000</strong>
+            git clone {DEMO_LINK}<br/>
+            cd florify<br/>
+            python -m pip install -r requirements.txt<br/>
+            python web/sunucu.py
           </div>
-          <div style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4;">İlk açılışta seçilen ilin iklim verisi internetten iner (birkaç dakika sürebilir); İzmir uydu sonucu repoda hazır. Sonra yukarıdaki 4 adımı izleyin.</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4;">Komutları satır satır çalıştırın, sonra tarayıcıda <strong style="color:var(--ink);">http://localhost:8000</strong> adresini açın. İlk açılışta ilin iklim verisi internetten iner (birkaç dakika sürebilir); İzmir uydu sonucu repoda hazır.</div>
         </div>
       </div>
 

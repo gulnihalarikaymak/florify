@@ -518,7 +518,9 @@ def main():
     for akis in (sys.stdout, sys.stderr):
         if hasattr(akis, "reconfigure"):
             akis.reconfigure(encoding="utf-8", errors="replace")
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+    # Port isteğe bağlı ilk argüman; sayı olmayan argümanlar (ör. yönergeden kopyalanan
+    # "→ tarayıcıda ...") yok sayılır, sunucu 8000'de açılır.
+    port = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 8000
     sunucu = ThreadingHTTPServer(("127.0.0.1", port), Isleyici)
     print(f"Florify Web Arayüzü çalışıyor: http://localhost:{port}")
     try:
