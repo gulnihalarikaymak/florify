@@ -1,0 +1,6 @@
+grup,oca,sub,mar,nis,may,haz,tem,agu,eyl,eki,kas,ara,dayanak
+cim,0.95,0.95,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,0.95,"FAO-56 Tablo 12: serin iklim çimi Kc ini/mid/end 0,90/0,95/0,95, yıl boyu neredeyse sabit"
+agac_cali,0.40,0.40,0.50,0.75,0.95,1.00,1.00,1.00,0.95,0.80,0.60,0.40,"Varsayım: FAO-56 dört aşamalı eğri biçimi (yaprak açma Nisan-Mayıs, döküm Ekim-Kasım); Konca vd. 2026 Şekil 3 ile aynı mantık"
+cali_otsu,0.50,0.50,0.60,0.80,0.95,1.00,1.00,1.00,0.90,0.75,0.60,0.50,"Varsayım: FAO-56 dört aşamalı eğri biçimi"
+yer_ortucu,0.50,0.50,0.60,0.80,0.95,1.00,1.00,1.00,0.90,0.75,0.60,0.50,"Varsayım: FAO-56 dört aşamalı eğri biçimi"
+cayir_yonca,0.50,0.50,0.60,0.85,1.00,1.00,1.00,1.00,0.90,0.75,0.60,0.50,"Varsayım: FAO-56 yem bitkisi eğrisi biçimi (biçimler arası ortalama)"

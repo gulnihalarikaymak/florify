@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Florify — Belediye Peyzaj Suyu Karar Paneli</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark">💧</span>
+        <div>
+          <div class="brand-name">Florify</div>
+          <div class="brand-sub">Belediye Peyzaj Suyu Karar Paneli · FAO-56 · MILP · Uydu · CMIP6</div>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" role="tablist">
+        <button class="nav-btn active" data-view="park">💧 Park Hesabı</button>
+        <button class="nav-btn" data-view="oneri">🌿 Bitki Önerisi</button>
+        <button class="nav-btn" data-view="uydu">🛰️ Uydu Haritası</button>
+        <button class="nav-btn" data-view="senaryo">🌡️ 2040 Senaryosu</button>
+      </nav>
+
+      <div class="global-il">
+        <label for="global-il-sec">İl</label>
+        <select id="global-il-sec"></select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="global-banner" class="banner hidden"></div>
+
+    <!-- ══════════════════ 1. PARK HESABI ══════════════════ -->
+    <section id="view-park" class="view active">
+      <div class="page-head">
+        <div>
+          <h1>Çimin yerine ne konsun?</h1>
+          <p id="park-sub" class="muted">İklim verisi yükleniyor…</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-park-ek1" class="btn secondary" type="button">📄 EK-1 Formu (CB 10502)</button>
+          <button id="btn-park-hesapla" class="btn primary">Hesapla</button>
+        </div>
+      </div>
+
+      <div class="card controls-grid">
+        <label class="field">
+          <span>İlçe (isteğe bağlı)</span>
+          <input id="park-ilce" type="text" placeholder="ör. Etimesgut" />
+        </label>
+        <label class="field">
+          <span>İdare adı (EK-1 raporu için)</span>
+          <input id="park-idare" type="text" placeholder="ör. Çankaya Belediyesi" />
+        </label>
+        <label class="field">
+          <span>İklim dönemi</span>
+          <select id="park-donem">
+            <option value="10y" selected>Son 10 yıl (2015–2024 · önerilen)</option>
+            <option value="5y">Son 5 yıl (2020–2024)</option>
+            <option value="30y">Uzun dönem normali (1991–2020)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Parkın toplam alanı (m²)</span>
+          <input id="park-toplam-alan" type="number" min="0" step="500" value="10000" />
+        </label>
+        <label class="field">
+          <span>Su tarifesi (KDV hariç)</span>
+          <select id="park-tarife-sec"></select>
+        </label>
+        <label class="field" id="park-tarife-elle-wrap">
+          <span>Tarife (TL/m³)</span>
+          <input id="park-tarife-val" type="number" min="0" step="1" value="197.04" />
+        </label>
+        <label class="field">
+          <span>Dönüşüm maliyeti (TL/m², isteğe bağlı)</span>
+          <input id="park-maliyet" type="number" min="0" step="50" value="0" placeholder="0 = kapalı" />
+        </label>
+        <label class="field">
+          <span>Hane (m³/yıl)</span>
+          <input id="park-hane" type="number" min="1" step="10" value="180" />
+        </label>
+        <label class="field checkbox-field">
+          <input id="park-sezon" type="checkbox" checked />
+          <span>Sulama sezonu Mart–Kasım</span>
+        </label>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <h2>Mevcut Peyzaj</h2>
+            <button class="btn small" data-add-row="mevcut">+ Satır ekle</button>
+          </div>
+          <div class="table-wrap">
+            <table class="edit-table">
+              <thead>
+                <tr><th>Bitki (Türkçe / Latince)</th><th>Alan (m²)</th><th>Yöntem</th><th>kd</th><th></th></tr>
+              </thead>
+              <tbody id="tbody-mevcut"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Önerilen Peyzaj</h2>
+            <button class="btn small" data-add-row="oneri">+ Satır ekle</button>
+          </div>
+          <div class="table-wrap">
+            <table class="edit-table">
+              <thead>
+                <tr><th>Bitki (Türkçe / Latince)</th><th>Alan (m²)</th><th>Yöntem</th><th>kd</th><th></th></tr>
+              </thead>
+              <tbody id="tbody-oneri"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="park-uyari" class="banner warn hidden"></div>
+
+      <div class="kpi-row cols-5" id="park-kpis">
+        <div class="kpi card"><div class="kpi-lbl">Mevcut (m³/yıl)</div><div class="kpi-val" id="pk-mevcut">—</div><div class="kpi-sub" id="pk-mevcut-bant"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Önerilen (m³/yıl)</div><div class="kpi-val" id="pk-oneri">—</div><div class="kpi-sub" id="pk-oneri-bant"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Tasarruf (m³/yıl)</div><div class="kpi-val green" id="pk-tasarruf">—</div><div class="kpi-sub" id="pk-yuzde"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Tasarruf (TL/yıl)</div><div class="kpi-val blue" id="pk-tl">—</div><div class="kpi-sub" id="pk-tl-not"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Hane eşdeğeri</div><div class="kpi-val" id="pk-hane">—</div><div class="kpi-sub" id="pk-hane-not"></div></div>
+      </div>
+
+      <div id="park-roi-bar" class="banner info hidden"></div>
+
+      <div class="two-col chart-split">
+        <div class="card">
+          <div class="card-head">
+            <h3>Aylık sulama suyu (m³)</h3>
+            <div class="legend"><span class="dot blue-bg"></span>Mevcut <span class="dot orange-bg"></span>Önerilen</div>
+          </div>
+          <div id="chart-park-su" class="svg-host"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>İklim: ET₀ ve Efektif Yağış (mm/ay)</h3>
+            <div class="legend"><span class="dot gray-bg"></span>ET₀ <span class="dot green-bg"></span>Efektif yağış</div>
+          </div>
+          <div id="chart-park-iklim" class="svg-host"></div>
+        </div>
+      </div>
+
+      <details class="card" open>
+        <summary class="details-head">
+          <span>Bölge bazında sonuçlar</span>
+          <button id="btn-park-csv" class="btn small" type="button">CSV indir</button>
+        </summary>
+        <div class="table-wrap" style="margin-top:12px;">
+          <table class="data-table">
+            <thead>
+              <tr><th>Peyzaj</th><th>Bölge</th><th>Grup</th><th>Kc</th><th>Yöntem</th><th>Alan (m²)</th><th>L/m²·yıl</th><th>m³/yıl</th></tr>
+            </thead>
+            <tbody id="tbody-park-sonuc"></tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary class="details-head"><span>Yöntem, doğrulama ve sınırlar</span></summary>
+        <div class="prose">
+          <ul>
+            <li><strong>Hesap:</strong> Her ay <code>ET₀ × Kc(ay) × kd − Peff(USDA-SCS)</code>, sulama randımanına bölünür (yağmurlama %70, damla %90). Bu bir <strong>hesaptır, saha ölçümü değildir</strong>.</li>
+            <li><strong>Doğrulama:</strong> Las Vegas SNWA sayaç ölçümünde aylık profil <strong>r = 0,96</strong>, tasarruf hesabımız %62 (ölçülen %76, temkinli). İzmir İZSU 10 yıllık park faturalarında mevsimsellik <strong>r = 0,89</strong>.</li>
+            <li><strong>Sınırlar:</strong> Çim dışındaki aylık Kc profilleri varsayımdır; ERA5'in Türkiye istasyonlarıyla kıyaslaması henüz yapılmadı.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- ══════════════════ 2. BİTKİ ÖNERİSİ (MILP) ══════════════════ -->
+    <section id="view-oneri" class="view">
+      <div class="page-head">
+        <div>
+          <h1>Çimin yerine hangi bitkiler?</h1>
+          <p class="muted">Kısıtlar altında en az su isteyen karışımı karma tamsayılı doğrusal programlama (MILP) ile hesaplar; makine öğrenmesi değildir.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btn-oneri-aktar" class="btn secondary" disabled>Park Hesabına Aktar →</button>
+          <button id="btn-oneri-hesapla" class="btn primary">Karışım Öner</button>
+        </div>
+      </div>
+
+      <div class="card space-y">
+        <div class="controls-grid">
+          <label class="field">
+            <span>Dönüştürülecek alan (m²)</span>
+            <input id="on-alan" type="number" min="100" step="500" value="10000" />
+          </label>
+          <label class="field">
+            <span>Çim kalması gereken alan (m²)</span>
+            <input id="on-zorunlu" type="number" min="0" step="100" value="2000" />
+          </label>
+          <label class="field">
+            <span>Kalan çimin karışımı</span>
+            <select id="on-cim-kc">
+              <option value="0.95" selected>Serin iklim çimi (Kc 0,95)</option>
+              <option value="0.80">Kurağa dayanıklı 5'li (Kc 0,80)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Su tarifesi (TL/m³)</span>
+            <input id="on-tarife" type="number" min="0" step="1" value="197.04" />
+          </label>
+        </div>
+
+        <div class="presets">
+          <span class="muted">Hazır ayar:</span>
+          <button class="chip-btn" data-preset="az_su">En az su</button>
+          <button class="chip-btn active" data-preset="dengeli">Dengeli: gölge ve çeşitlilik</button>
+          <button class="chip-btn" data-preset="zengin">Zengin görünüm</button>
+        </div>
+
+        <div class="sliders-4">
+          <label class="slider-field">
+            <div class="slider-head"><span>En az gölge ağacı payı</span><strong id="lbl-agac">%25</strong></div>
+            <input id="on-agac" type="range" min="0" max="60" value="25" />
+          </label>
+          <label class="slider-field">
+            <div class="slider-head"><span>En az çalı / çiçek payı</span><strong id="lbl-cali">%20</strong></div>
+            <input id="on-cali" type="range" min="0" max="60" value="20" />
+          </label>
+          <label class="slider-field">
+            <div class="slider-head"><span>Bir tür en fazla pay</span><strong id="lbl-maxpay">%20</strong></div>
+            <input id="on-maxpay" type="range" min="5" max="60" value="20" />
+          </label>
+          <label class="slider-field">
+            <div class="slider-head"><span>En az tür sayısı</span><strong id="lbl-minsay">6</strong></div>
+            <input id="on-minsay" type="range" min="1" max="15" value="6" />
+          </label>
+        </div>
+
+        <div class="haric-box">
+          <div class="haric-top">
+            <label class="field" style="flex:1;">
+              <span>Önerilmesin (hariç tutulacak tür ekle)</span>
+              <select id="on-haric-sec"></select>
+            </label>
+            <button id="btn-haric-ekle" class="btn small" type="button">Hariç tut</button>
+          </div>
+          <div id="on-haric-chips" class="chips-wrap"></div>
+        </div>
+      </div>
+
+      <div id="oneri-ankara-not" class="banner info hidden"></div>
+
+      <div class="kpi-row cols-4">
+        <div class="kpi card"><div class="kpi-lbl">Şu an, tamamı çim (m³/yıl)</div><div class="kpi-val" id="on-k-mevcut">—</div></div>
+        <div class="kpi card"><div class="kpi-lbl">Öneriyle (m³/yıl)</div><div class="kpi-val green" id="on-k-oneri">—</div><div class="kpi-sub" id="on-k-yuzde"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Tasarruf (TL/yıl)</div><div class="kpi-val blue" id="on-k-tl">—</div></div>
+        <div class="kpi card"><div class="kpi-lbl">Hane eşdeğeri</div><div class="kpi-val" id="on-k-hane">—</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <h3>Önerilen karışım: Alan payı vs Su payı (%)</h3>
+            <div class="legend"><span class="dot blue-bg"></span>Alan payı <span class="dot orange-bg"></span>Su payı</div>
+          </div>
+          <div id="chart-oneri" class="svg-host"></div>
+          <p class="caption">Kalan çim, küçük alanıyla toplam suyun büyük kısmını içer.</p>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Seçilen Türler</h3>
+            <button id="btn-oneri-csv" class="btn small" type="button">CSV indir</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Tür (Türkçe / Latince)</th><th>EK-1</th><th>Gölge</th><th>Bakanlık 2024</th><th>Kc</th><th>Alan (m²)</th><th>m³/yıl</th></tr>
+              </thead>
+              <tbody id="tbody-oneri-sonuc"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 3. UYDU HARİTASI (81 İL + İZMİR DOĞRULAMA) ══════════════════ -->
+    <section id="view-uydu" class="view">
+      <div class="page-head">
+        <div>
+          <h1 id="uydu-baslik">Uydudan sulanan yeşil — İzmir</h1>
+          <p id="uydu-altbaslik" class="muted">ESA WorldCover 2021 + Sentinel-2 Ağustos 2023 (NDVI &gt; 0,5) + kentsel maske · envanter olmadan</p>
+        </div>
+        <button id="btn-uydu-izmir-mod" class="btn secondary small" type="button">İzmir İZSU Doğrulaması (11 ilçe)</button>
+      </div>
+
+      <!-- Bölge / İl-İlçe seçici -->
+      <div class="card controls-grid">
+        <label class="field">
+          <span>İl (üst menüyle senkron)</span>
+          <select id="uy-il-sec"></select>
+        </label>
+        <label class="field" id="uy-ilce-text-wrap">
+          <span>İlçe (isteğe bağlı)</span>
+          <input id="uy-ilce-text" type="text" placeholder="ör. Çankaya, Muratpaşa, Kadıköy" />
+        </label>
+        <label class="field" id="uy-yaricap-wrap">
+          <span>Harita penceresi</span>
+          <select id="uy-yaricap">
+            <option value="3">6 × 6 km (hızlı)</option>
+            <option value="4" selected>8 × 8 km (önerilen)</option>
+            <option value="5">10 × 10 km (geniş)</option>
+          </select>
+        </label>
+        <div class="field" style="justify-content:end;">
+          <button id="btn-uydu-analiz" class="btn primary" type="button">Uydu Haritasını Çıkar</button>
+        </div>
+      </div>
+
+      <div id="uy-uyari" class="banner warn hidden"></div>
+      <div id="uy-bilgi" class="banner info hidden"></div>
+
+      <!-- KPI Satırı -->
+      <div class="kpi-row cols-4">
+        <div class="kpi card"><div class="kpi-lbl" id="uy-k1-lbl">Sulanan kentsel yeşil</div><div class="kpi-val green" id="uy-alan">—</div><div class="kpi-sub" id="uy-alan-sub">11 merkez ilçe toplamı</div></div>
+        <div class="kpi card"><div class="kpi-lbl">Hesaplanan su (çim varsayımı)</div><div class="kpi-val blue" id="uy-hesap">—</div><div class="kpi-sub" id="uy-hesap-not"></div></div>
+        <div class="kpi card"><div class="kpi-lbl" id="uy-k3-lbl">İZSU 2023 faturası</div><div class="kpi-val" id="uy-fatura">—</div><div class="kpi-sub" id="uy-fatura-sub">Park + mezarlık aboneleri</div></div>
+        <div class="kpi card"><div class="kpi-lbl" id="uy-k4-lbl">Fatura ile uyum (Spearman ρ)</div><div class="kpi-val green" id="uy-rho">—</div><div class="kpi-sub" id="uy-rho-not"></div></div>
+      </div>
+
+      <!-- İzmir Doğrulama + Harita Görünümü -->
+      <div id="uy-grid" class="two-col">
+        <div class="card" id="uy-scatter-card">
+          <div class="card-head">
+            <h3>Uydu ve İZSU Faturası — İlçe Bazında</h3>
+            <span class="muted small-txt">Haritayı yakınlaştırmak için bir ilçeye tıklayın</span>
+          </div>
+          <div id="chart-uydu-scatter" class="svg-host"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3 id="uy-harita-baslik">İzmir Merkez Haritası (Yaz 2023)</h3>
+            <span id="uy-harita-alt" class="muted small-txt">10×10 m piksel analizi</span>
+          </div>
+          <img id="uydu-img" class="map-img" src="/assets/uydu_izmir_harita.png" alt="Sulanan kentsel yeşil uydu haritası" />
+        </div>
+      </div>
+
+      <div class="card space-y">
+        <h2 id="uy-sen-baslik">Senaryo: Sulanan yeşilin bir kısmı kurakçıl peyzaja dönerse</h2>
+        <div class="controls-grid">
+          <label class="field" id="uy-ilce-sec-wrap">
+            <span>İzmir merkez ilçesi (haritayı yakınlaştırır)</span>
+            <select id="uy-ilce-sec"></select>
+          </label>
+          <label class="slider-field">
+            <div class="slider-head"><span>Dönüştürülen pay</span><strong id="lbl-uy-oran">%30</strong></div>
+            <input id="uy-oran" type="range" min="0" max="100" step="5" value="30" />
+          </label>
+          <label class="field">
+            <span>Su tarifesi (TL/m³)</span>
+            <input id="uy-tarife" type="number" min="0" step="1" value="71.83" />
+          </label>
+        </div>
+        <div class="kpi-row cols-4">
+          <div class="kpi subtle"><div class="kpi-lbl">Mevcut (m³/yıl)</div><div class="kpi-val" id="uy-s-mevcut">—</div></div>
+          <div class="kpi subtle"><div class="kpi-lbl">Dönüşüm sonrası (m³/yıl)</div><div class="kpi-val green" id="uy-s-sonra">—</div><div class="kpi-sub" id="uy-s-yuzde"></div></div>
+          <div class="kpi subtle"><div class="kpi-lbl">Tasarruf (TL/yıl)</div><div class="kpi-val blue" id="uy-s-tl">—</div></div>
+          <div class="kpi subtle"><div class="kpi-lbl">Hane eşdeğeri</div><div class="kpi-val" id="uy-s-hane">—</div></div>
+        </div>
+        <p id="uy-senaryo-not" class="caption"></p>
+      </div>
+
+      <details class="card" id="uy-ilce-tablo-card">
+        <summary class="details-head"><span>İzmir merkez ilçe tablosu (11 ilçe · İZSU 2023 kıyaslaması)</span></summary>
+        <div class="table-wrap" style="margin-top:12px;">
+          <table class="data-table">
+            <thead>
+              <tr><th>İlçe</th><th>Sulanan yeşil (m²)</th><th>İZSU 2023 (m³)</th><th>Kentsel alan (m²)</th><th>Kapsama (%)</th></tr>
+            </thead>
+            <tbody id="tbody-uydu"></tbody>
+          </table>
+        </div>
+      </details>
+
+      <p id="uydu-atif" class="caption"></p>
+    </section>
+
+    <!-- ══════════════════ 4. 2040 SENARYOSU ══════════════════ -->
+    <section id="view-senaryo" class="view">
+      <div class="page-head">
+        <div>
+          <h1>2040'larda çim ne kadar su isteyecek?</h1>
+          <p id="sen-sub" class="muted">7 CMIP6 iklim modeli (yüksek emisyon, kötümser uç) · delta yöntemi</p>
+        </div>
+        <button id="btn-sen-yukle" class="btn primary">Güncelle</button>
+      </div>
+
+      <div class="kpi-row cols-4">
+        <div class="kpi card"><div class="kpi-lbl">Çim, bugün (L/m²·yıl)</div><div class="kpi-val" id="s2-cim-bugun">—</div><div class="kpi-sub">1991–2020 normali</div></div>
+        <div class="kpi card"><div class="kpi-lbl">Çim, 2040'lar (L/m²·yıl)</div><div class="kpi-val orange" id="s2-cim-2040">—</div><div class="kpi-sub" id="s2-cim-artis"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Kurakçıl, 2040'lar (L/m²·yıl)</div><div class="kpi-val green" id="s2-kur-2040">—</div><div class="kpi-sub" id="s2-kur-artis"></div></div>
+        <div class="kpi card"><div class="kpi-lbl">Artış öngören model</div><div class="kpi-val blue" id="s2-mod-say">—</div><div class="kpi-sub">ET₀ artışı (CMIP6)</div></div>
+      </div>
+
+      <div id="sen-mesaj" class="banner info hidden"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>Aylık sulama ihtiyacı (L/m² · ay): Bugün (kesik) vs 2040'lar medyan (düz) + model aralığı</h3>
+          <div class="legend"><span class="dot blue-bg"></span>Çim <span class="dot orange-bg"></span>Kurakçıl</div>
+        </div>
+        <div id="chart-2040" class="svg-host"></div>
+      </div>
+
+      <div class="card space-y">
+        <h2>Parkınız için 2040 etkisi</h2>
+        <div class="controls-grid">
+          <label class="field">
+            <span>Çim alanı (m²)</span>
+            <input id="s2-alan" type="number" min="0" step="500" value="10000" />
+          </label>
+          <label class="field">
+            <span>Su tarifesi (TL/m³, bugünkü fiyat)</span>
+            <input id="s2-tarife" type="number" min="0" step="1" value="197.04" />
+          </label>
+        </div>
+        <div class="kpi-row cols-3">
+          <div class="kpi subtle"><div class="kpi-lbl">Çim kalırsa 2040'larda ek su (m³/yıl)</div><div class="kpi-val orange" id="s2-p-ek">—</div></div>
+          <div class="kpi subtle"><div class="kpi-lbl">Çim kalırsa 2040'larda toplam (m³/yıl)</div><div class="kpi-val" id="s2-p-cim">—</div></div>
+          <div class="kpi subtle"><div class="kpi-lbl">Kurakçıla dönerse 2040'larda (m³/yıl)</div><div class="kpi-val green" id="s2-p-kur">—</div><div class="kpi-sub" id="s2-p-fark"></div></div>
+        </div>
+      </div>
+
+      <details class="card">
+        <summary class="details-head"><span>7 CMIP6 modelinin ayrı sonuçları</span></summary>
+        <div class="table-wrap" style="margin-top:12px;">
+          <table class="data-table">
+            <thead>
+              <tr><th>Model</th><th>ET₀ değişimi (%)</th><th>Yağış değişimi (%)</th><th>Çim 2040'lar (L/m²)</th><th>Kurakçıl 2040'lar (L/m²)</th></tr>
+            </thead>
+            <tbody id="tbody-2040"></tbody>
+          </table>
+        </div>
+      </details>
+
+      <p class="caption">Kaynak: Open-Meteo Climate API (CMIP6 HighResMIP, CC BY 4.0) ve Open-Meteo/ERA5. Yüksek emisyon (kötümser uç) senaryosudur; Kc, sulama randımanı ve CO₂ etkisi sabit tutulmuştur.</p>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip hidden"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+prototip/cikti/*.json
+veri_onbellek/
+CLAUDE.md
+.claude/

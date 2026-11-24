@@ -1,0 +1,14 @@
+requests
+matplotlib
+pytest
+streamlit
+altair
+pandas
+numpy
+scipy
+lightgbm
+scikit-learn
+pystac-client
+rasterio
+shapely
+pyproj
